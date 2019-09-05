@@ -1,7 +1,7 @@
 {
   "name": "vue-fixed-overflow",
   "version": "1.0.0",
-  "description": "easy directive for fixed table header",
+  "description": "fixed, vue directive, easy directive for overflow dom",
   "main": "lib/index.js",
   "scripts": {
     "build": "webpack --config build/webpack.config.js"
@@ -11,11 +11,10 @@
     "url": "git+https://github.com/ZhanYishu/vue-fixed-overflow.git"
   },
   "keywords": [
-    "table-header",
-    "fixed-table-header",
-    "element-ui",
-    "vue",
-    "table"
+    "fixed-overflow",
+    "fixed-component",
+    "vue-directive",
+    "vue"
   ],
   "author": "Zhifang Zhan",
   "license": "ISC",

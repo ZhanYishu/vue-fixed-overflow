@@ -7,8 +7,8 @@ export default {
   name: 'fixed-overflow',
   option: {
     inserted (el, binding, vnode) {
-      const instance = vnode.componentInstance
-
+      const instance = vnode.context
+      
       instance.$nextTick(() => {
         const positionNode = getPositionNode(el)
         let left = getOffset(el).left || 0
@@ -16,28 +16,37 @@ export default {
         let top = getOffset(positionNode).top || 0
         const offsetTop = getToPositionNodeTop(el, positionNode)
         const screenWidth = screen.width
-
+        
+        // 高度补偿，避免fixed时移位
+        const newDiv = document.createElement('div')
+        setStyle(newDiv, 'height', el.offsetHeight + 'px')
+        setStyle(newDiv, 'display', 'none')
+        el.parentNode.insertBefore(newDiv, el)
+        
         // 父级滚动监听
         let offsetParentTicking = false
         let isResetFixed = false
         let isSetFixed = false
-
+        setStyle(el, 'width', getStyle(el, 'width'))
+        
         instance.handleOffsetParentScroll = function () {
           if (!offsetParentTicking) {
             window.requestAnimationFrame(function () {
-              if (getScrollTop(positionNode) < offsetTop || getScrollTop(positionNode) > offsetTop + el.offsetHeight) {
+              if (getScrollTop(positionNode) < offsetTop) {
                 isSetFixed = false
                 if (!isResetFixed) {
+                  setStyle(newDiv, 'display', 'none')
                   resetDomFixed()
-
+                  
                   isResetFixed = true
                 }
               } else {
                 isResetFixed = false
-
+                
                 if (!isSetFixed) {
                   setDomFixed()
-
+                  setStyle(newDiv, 'display', 'block')
+                  
                   isSetFixed = true
                 }
               }
@@ -46,26 +55,26 @@ export default {
             offsetParentTicking = true
           }
         }
-
+        
         instance.autoResizeListener = function () {
           left = getOffset(el).left  || 0
           right = getOffset(el).right || 0
           top = getOffset(positionNode).top || 0
-
+          
           if (!(getScrollTop(positionNode) < offsetTop)) {
             setDomFixed()
           }
         }
-
+        
         addResizeListener(el, instance.autoResizeListener)
-
+        
         // 监听父级定位元素滚动事件，动态设置固定头部显隐
         if (positionNode.nodeName === 'BODY') {
           window.addEventListener('scroll', instance.handleOffsetParentScroll)
         } else {
           positionNode.addEventListener('scroll', instance.handleOffsetParentScroll)
         }
-
+        
         function setDomFixed () {
           const options = {
             position: 'fixed',
@@ -75,7 +84,7 @@ export default {
           }
           setFixedStyle(el, options)
         }
-
+        
         function resetDomFixed () {
           const options = {
             position: '',
@@ -88,7 +97,7 @@ export default {
       })
     },
     unbind (el, binding, vnode) {
-      const instance = vnode.componentInstance
+      const instance = vnode.context
       removeResizeListener(el, instance.autoResizeListener)
     }
   }
@@ -138,7 +147,7 @@ function getScrollTop (el) {
 function getPositionNode (el) {
   const positionNode = el.parentNode
   if (positionNode.nodeName === 'BODY') return positionNode
-
+  
   if (getStyle(positionNode, 'overflow') === 'scroll' || getStyle(positionNode, 'overflowY') === 'scroll') {
     return positionNode
   } else {

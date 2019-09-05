@@ -2,10 +2,7 @@
 
 基于 vue 的 vue-fixed-overflow 指令
 
-一个简单的指令便可随父级定位元素的滚动位置自动显示与隐藏
-
-#### [在线实例地址](http://static.zhanzf.com/components-inline-demo/element-table-header.html)
-#### [代码实例地址](https://github.com/ZhanYishu/components-inline-demo/blob/master/src/views/element-table-header/app.vue)
+一个简单的指令便可随父级元素的滚动位置自动显示与隐藏
 
 ## 安装
 ### yarn

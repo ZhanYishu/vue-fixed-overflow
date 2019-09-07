@@ -2,7 +2,12 @@
 
 基于 vue 的 vue-fixed-overflow 指令
 
-一个简单的指令便可随父级元素的滚动位置自动显示与隐藏
+一个简单的指令便可随父级滚动容器滚动位置自动显示与隐藏
+
+## 强大功能
+#### 1、可自定义目标元素顶部离开可视区域多高时显示
+#### 2、可跟随目标元素resize自动调整宽高
+#### 3、流畅的滚动体验与突出的性能
 
 ## 安装
 ### yarn
@@ -20,10 +25,8 @@ main.js
 ```js
 import Vue from 'vue'
 import vueFixedOverflow from 'vue-fixed-overflow'
-import 'vue-fixed-overflow/lib/main.css'
 import App from './app.vue'
 
-Vue.use(ElementUI)
 //1、 使用注册插件方式注册指令
 Vue.use(vueFixedOverflow)
 //2、 或者使用注册指令方式
@@ -34,7 +37,7 @@ new Vue({
   render: createElement => createElement(App)
 }).$mount('#app')
 ```
-app.vue
+app1.vue
 ```vue
 <template>
   <div>
@@ -44,13 +47,26 @@ app.vue
 </template>
 
 <script>
-  import vFixedOverflow from 'index.js'
-  export default {
-    
-    directives: {
-      [vFixedOverflow.name]: vFixedOverflow.option
-    },
-    
+  export default {    
+    data() {
+      return {}
+    }
+  }
+</script>
+```
+app2.vue
+
+可自定义目标元素顶部离开可视区域高度时显示
+```vue
+<template>
+  <div>
+    <div style="height: 700px;"></div>
+    <div v-fixed-overflow="100" style="background-color: yellow; ">vue-fixed-overflow</div>
+  </div>
+</template>
+
+<script>
+  export default {    
     data() {
       return {}
     }

@@ -4,6 +4,9 @@
 
 一个简单的指令便可随父级滚动容器滚动位置自动显示与隐藏
 
+### [在线实例](http://static.zhanzf.com/components-inline-demo/vue-fixed-overflow.html)
+![img](https://github.com/ZhanYishu/vue-fixed-overflow/raw/master/assets/demo.gif)
+
 ## 强大功能
 #### 1、可自定义目标元素顶部离开可视区域多高时显示
 #### 2、可跟随目标元素resize自动调整宽高
@@ -78,5 +81,5 @@ app2.vue
 [实例demo](https://github.com/ZhanYishu/vue-fixed-overflow/blob/master/demo/index.vue)
 
 ## 注意事项
-使用时请确保组件或dom所在的父级滚动条是唯一的，不建议布局时采用双层滚动条布局
-
+1、使用时请确保组件或dom所在的父级滚动条是唯一的，不建议布局时采用双层滚动条布局
+2、目标元素尽量避免使用左右margin(元素存在左margin时，getBoundingClientRect会存在不同情况)

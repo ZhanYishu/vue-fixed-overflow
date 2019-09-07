@@ -6,7 +6,7 @@
 </template>
 
 <script>
-  import vFixedOverflow from 'index.js'
+  import vFixedOverflow from 'vue-fixed-overflow'
   export default {
     
     directives: {

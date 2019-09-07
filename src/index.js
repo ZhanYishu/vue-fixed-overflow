@@ -210,8 +210,8 @@ function setFixedStyle (el, options = {}) {
  * @returns {HTMLDivElement}
  */
 function insertBeforeCloneDom (el) {
-  const cloneDom = el.cloneNode()
-  setStyle(cloneDom, 'height', el.offsetHeight + 'px')
+  const cloneDom = document.createElement('div')
+  setStyle(cloneDom, 'height', getFullHeight(el) + 'px')
   setStyle(cloneDom, 'display', 'none')
   el.parentNode.insertBefore(cloneDom, el)
   return cloneDom

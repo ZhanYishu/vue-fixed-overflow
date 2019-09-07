@@ -1,5 +1,7 @@
 /**
- * vue-fixed-overflow: 用于自动显示表格头部的指令
+ * @directive: vue-fixed-overflow
+ * @author: zhanzf
+ * @github: https://github.com/ZhanYishu/vue-fixed-overflow
  */
 import { addResizeListener, removeResizeListener } from './utils'
 
@@ -8,71 +10,73 @@ export default {
   option: {
     inserted (el, binding, vnode) {
       const instance = vnode.context
-      
+      const fixHeight = Number(binding.value) || 0
       instance.$nextTick(() => {
+        
         const positionNode = getPositionNode(el)
+        const offsetTop = getToPositionNodeTop(el, positionNode)
+        
         let left = getOffset(el).left || 0
         let right = getOffset(el).right || 0
-        let top = getOffset(positionNode).top || 0
-        const offsetTop = getToPositionNodeTop(el, positionNode)
-        const screenWidth = screen.width
+        let top = getOffset(positionNode).top - parseInt(getStyle(el, 'margin-top') || 0)
+        let bodyOffsetWidth = document.body.offsetWidth
         
-        // 高度补偿，避免fixed时移位
-        const newDiv = document.createElement('div')
-        setStyle(newDiv, 'height', el.offsetHeight + 'px')
-        setStyle(newDiv, 'display', 'none')
-        el.parentNode.insertBefore(newDiv, el)
+        // 高度补偿，设置临时占位dom, 避免fixed时移位
+        const cloneDom = insertBeforeCloneDom(el)
         
-        // 父级滚动监听
-        let offsetParentTicking = false
+        let ticking = false
         let isResetFixed = false
         let isSetFixed = false
-        setStyle(el, 'width', getStyle(el, 'width'))
         
-        instance.handleOffsetParentScroll = function () {
-          if (!offsetParentTicking) {
+        instance.handleScroll = function () {
+          if (!ticking) {
             window.requestAnimationFrame(function () {
-              if (getScrollTop(positionNode) < offsetTop) {
+              const scrollTop = getScrollTop(positionNode)
+              
+              if (scrollTop < offsetTop) {
                 isSetFixed = false
                 if (!isResetFixed) {
-                  setStyle(newDiv, 'display', 'none')
+                  setStyle(cloneDom, 'display', 'none')
                   resetDomFixed()
                   
                   isResetFixed = true
                 }
-              } else {
+              }
+              
+              if (scrollTop >= offsetTop + fixHeight) {
                 isResetFixed = false
                 
                 if (!isSetFixed) {
                   setDomFixed()
-                  setStyle(newDiv, 'display', 'block')
+                  setStyle(cloneDom, 'display', 'block')
                   
                   isSetFixed = true
                 }
               }
-              offsetParentTicking = false
+              ticking = false
             })
-            offsetParentTicking = true
+            ticking = true
           }
         }
         
         instance.autoResizeListener = function () {
-          left = getOffset(el).left  || 0
-          right = getOffset(el).right || 0
-          top = getOffset(positionNode).top || 0
+          left = getOffset(cloneDom).left  || left
+          right = getOffset(cloneDom).right || right
+          top = getOffset(positionNode).top - parseInt(getStyle(el, 'margin-top') || 0) || top
+          bodyOffsetWidth = document.body.offsetWidth
           
           if (!(getScrollTop(positionNode) < offsetTop)) {
             setDomFixed()
           }
         }
         
-        addResizeListener(el, instance.autoResizeListener)
+        addResizeListener(cloneDom, instance.autoResizeListener)
         
-        // 监听父级定位元素滚动事件，动态设置固定头部显隐
+        // 监听滚动容器元素滚动事件，动态设置固定头部显隐
         if (positionNode.nodeName === 'BODY') {
-          window.addEventListener('scroll', instance.handleOffsetParentScroll)
+          window.addEventListener('scroll', instance.handleScroll)
         } else {
-          positionNode.addEventListener('scroll', instance.handleOffsetParentScroll)
+          positionNode.addEventListener('scroll', instance.handleScroll)
         }
         
         function setDomFixed () {
@@ -80,6 +84,7 @@ export default {
             position: 'fixed',
             top: top + 'px',
             left: left + 'px',
+            right: bodyOffsetWidth - right + 'px',
             zIndex: 888
           }
           setFixedStyle(el, options)
@@ -90,6 +95,7 @@ export default {
             position: '',
             top: '',
             left: '',
+            right: '',
             zIndex: ''
           }
           setFixedStyle(el, options)
@@ -105,7 +111,7 @@ export default {
 
 /**
  * 获取元素可视区域距离窗口的距离
- * @param el {element}
+ * @param el {HTMLElement}
  * @returns {{top: number, left: number, right: number}}
  */
 function getOffset (el) {
@@ -114,13 +120,14 @@ function getOffset (el) {
   return {
     top: rect.top + win.pageYOffset,
     left: rect.left + win.pageXOffset,
-    right: rect.right + win.pageXOffset
+    right: rect.right + win.pageXOffset,
+    bottom: rect.bottom + win.pageXOffset
   }
 }
 
 /**
  * 设置样式
- * @param el {element}
+ * @param el {HTMLElement}
  * @param attribute {string}
  * @param value {string}
  */
@@ -130,7 +137,7 @@ function setStyle (el, attribute, value) {
 
 /**
  * 获取元素的滚动距离
- * @param el {element}
+ * @param el {HTMLElement}
  * @returns {number}
  */
 function getScrollTop (el) {
@@ -142,7 +149,7 @@ function getScrollTop (el) {
 
 /**
  * 获取第一个具有滚动属性的祖先元素即用作定位元素
- * @param el {element}
+ * @param el {HTMLElement}
  */
 function getPositionNode (el) {
   const positionNode = el.parentNode
@@ -157,8 +164,8 @@ function getPositionNode (el) {
 
 /**
  * 获取距离定位元素的距离
- * @param el {element}
- * @param positionNode {element}
+ * @param el {HTMLElement}
+ * @param positionNode {HTMLElement}
  */
 function getToPositionNodeTop (el, positionNode) {
   return getOffset(el).top - getOffset(positionNode).top
@@ -166,7 +173,7 @@ function getToPositionNodeTop (el, positionNode) {
 
 /**
  * 获取样式
- * @param el {element}
+ * @param el {HTMLElement}
  * @param property {string}
  * @returns {*}
  */
@@ -184,8 +191,8 @@ function getStyle (el, property) {
 }
 
 /**
- * 重置表头固定定位
- * @param el {element}
+ * 重置固定定位
+ * @param el {HTMLElement}
  * @param options {object}
  */
 function setFixedStyle (el, options = {}) {
@@ -195,4 +202,34 @@ function setFixedStyle (el, options = {}) {
   setStyle(el, 'right', right || '')
   setStyle(el, 'left', left || '')
   setStyle(el, 'zIndex', zIndex || '')
+}
+
+/**
+ * 设置临时占位节点
+ * @param el {HTMLElement}
+ * @returns {HTMLDivElement}
+ */
+function insertBeforeCloneDom (el) {
+  const cloneDom = el.cloneNode()
+  setStyle(cloneDom, 'height', el.offsetHeight + 'px')
+  setStyle(cloneDom, 'display', 'none')
+  el.parentNode.insertBefore(cloneDom, el)
+  return cloneDom
+}
+
+/**
+ * 获取节点完整高度
+ * @param el {HTMLElement}
+ * @returns {number}
+ */
+function getFullHeight (el) {
+  let offsetHeight = el.offsetHeight
+  
+  offsetHeight = ['top', 'bottom'].map((side) => {
+    return parseInt(getStyle(el, ['margin-' + side]), 10)
+  }).reduce((total, side) => {
+    return total + side
+  }, offsetHeight)
+  
+  return offsetHeight
 }
